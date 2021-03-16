@@ -61,19 +61,49 @@ def directionalGradients(horizontal, vertical):
     magnitude = np.sqrt(np.power(horizontal, 2) + np.power(vertical, 2))
     print(magnitude)
     angle = np.arctan2(vertical, horizontal)
-    angle = 180 + np.rad2deg(angle)
+
 
     return magnitude, angle
 
 
 def non_maximum_suppression(mag, ang):
     width, height = mag.shape
-    out = np.zeros((width, height), dtype=np.int32)
+    out = np.zeros((width, height), dtype=np.int8)
     angle = ang * 180. / np.pi
 
     angle[angle < 0] += 180
 
-    #for i in range(1, width-1)
+    for i in range(1, width-1):
+        for j in range(1, height-1):
+            try:
+                q = 255
+                r = 255
+
+                if(0 <= angle[i, j] < 22.5) or (157.5 <= angle[i, j] <= 180):
+                    q = mag[i, j+1]
+                    r = mag[i, j-1]
+                elif(22.5 <= angle[i, j] < 67.5):
+                    q = mag[i+1, j-1]
+                    r = mag[i-1, j+1]
+                elif(67.5 <= angle[i,j] < 112.5):
+                    q = mag[i+1, j]
+                    r = mag[i-1, j]
+                elif(112.5 <= angle[i, j] < 157.5):
+                    q = mag[i-1, j-1]
+                    r = mag[i+1, j+1]
+
+                if(mag[i, j] >= q) and (mag[i, j] >= r):
+                    out[i, j] = mag[i, j]
+                else:
+                    out[i, j] = 0
+
+            except IndexError as e:
+                pass
+
+    return out
+
+
+
 
 
 def show_image(title, img):
@@ -81,6 +111,7 @@ def show_image(title, img):
     cv2.imshow(title, img)
 
 def show_image_angle(title, img):
+    img = 180 + np.rad2deg(img)
     img = np.absolute((img/360)*255).astype('uint8')
     cv2.imshow(title, img)
 
@@ -103,6 +134,9 @@ show_image("Sobel Horizontal", sobel_horizontal)
 mag, dir = directionalGradients(sobel_horizontal, sobel_vertical)
 show_image("Magnitude", mag)
 show_image_angle("Angle", dir)
+
+suppressed = non_maximum_suppression(mag, dir)
+show_image("NMS", suppressed)
 
 cv2.waitKey(0)
 
