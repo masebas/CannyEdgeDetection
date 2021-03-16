@@ -15,7 +15,7 @@ def gkern(kernlen=21, nsig=3):
 
 
 def apply_kernel(kernel, _img):
-    out = np.zeros(_img.shape)
+    out = np.zeros(_img.shape, dtype=np.float64)
     filter_size = len(kernel)
     kernel_size = int(np.floor(filter_size/2))
 
@@ -24,7 +24,7 @@ def apply_kernel(kernel, _img):
             if kernel_size <= x < _img.shape[1] - kernel_size and kernel_size <= y < _img.shape[0] - kernel_size:
                 roi = _img[y-kernel_size:y+kernel_size+1, x-kernel_size:x+kernel_size+1]
                 aoe = np.multiply(roi, kernel)
-                out[y, x] = np.sum(a=aoe)
+                out[y, x] = np.sum(a=aoe)/4
     return out
 
 
