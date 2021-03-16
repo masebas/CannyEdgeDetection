@@ -115,20 +115,60 @@ def show_image_angle(title, img):
     img = np.absolute((img/360)*255).astype('uint8')
     cv2.imshow(title, img)
 
+def write_image(title, img):
+    img = np.absolute(img).astype('uint8')
+    cv2.imwrite(title + ".jpg", img)
+
+def write_image_angle(title, img):
+    img = np.absolute((img/360)*255).astype('uint8')
+    cv2.imwrite(title + ".jpg", img)
+
+
+def doubleThreshold(img, lower_threshold=0.05, higher_threshold=0.09):
+    output = np.zeros(img.shape, dtype=np.int32)
+
+    highThreshold = img.max() * higher_threshold;
+    lowThreshold  = highThreshold * lower_threshold;
+
+    weak   = np.int32(25)
+    strong = np.int32(255)
+
+    strongs = np.zeros(img.shape, dtype = np.int32)
+    zeros   = np.zeros(img.shape, dtype = np.int32)
+    weaks   = np.zeros(img.shape, dtype = np.int32)
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            if img[i, j] >= highThreshold:
+                strongs[i, j] = 1
+            elif img[i, j] < lowThreshold:
+                zeros[i, j] = 1
+            elif (img[i, j] <= highThreshold) & (img[i, j] >= lowThreshold):
+                weaks[i, j] = 1
+
+
+    output += weak   * weaks
+    output += strong * strongs
+
+    return output
+
+
+
+
+
+
+
 
 IMAGEPATH = "test.bmp"
 
 
 input = cv2.imread(IMAGEPATH, cv2.IMREAD_GRAYSCALE)
-cv2.imshow("Original", input)
 
 gauss_out = gaussian_filter(3, const.golden_ratio, input)
-cv2.imshow("Post Gauss", gauss_out)
 
 sobel_horizontal, sobel_vertical = sobel_filter(gauss_out)
 
-show_image("Sobel Vertical", sobel_vertical)
-show_image("Sobel Horizontal", sobel_horizontal)
+#  show_image("Sobel Vertical", sobel_vertical)
+#  show_image("Sobel Horizontal", sobel_horizontal)
 
 
 mag, dir = directionalGradients(sobel_horizontal, sobel_vertical)
@@ -137,6 +177,10 @@ show_image_angle("Angle", dir)
 
 suppressed = non_maximum_suppression(mag, dir)
 show_image("NMS", suppressed)
+
+thresh = doubleThreshold(mag)
+show_image("Threshold", thresh)
+write_image("Threshold", thresh)
 
 cv2.waitKey(0)
 
