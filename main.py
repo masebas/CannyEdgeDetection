@@ -68,7 +68,7 @@ def directionalGradients(horizontal, vertical):
 
 def non_maximum_suppression(mag, ang):
     width, height = mag.shape
-    out = np.zeros((width, height), dtype=np.int8)
+    out = np.zeros((width, height), dtype=np.int32)
     angle = ang * 180. / np.pi
 
     angle[angle < 0] += 180
@@ -130,6 +130,8 @@ def doubleThreshold(img, lower_threshold=0.05, higher_threshold=0.09):
     highThreshold = img.max() * higher_threshold
     lowThreshold = highThreshold * lower_threshold
 
+    print(highThreshold, lowThreshold)
+
     weak = np.int32(32)
     strong = np.int32(255)
 
@@ -140,7 +142,7 @@ def doubleThreshold(img, lower_threshold=0.05, higher_threshold=0.09):
             if img[i, j] >= highThreshold:
                 output[i, j] = strong
             elif img[i, j] < lowThreshold:
-                zeros[i, j] = 1
+                output[i, j] = 0
             elif (img[i, j] <= highThreshold) & (img[i, j] >= lowThreshold):
                 output[i, j] = weak
 
@@ -156,7 +158,7 @@ def hysteresis(img, weak, strong=255):
                     if ((img[i + 1, j - 1] == strong) or (img[i + 1, j] == strong) or (img[i + 1, j + 1] == strong)
                             or (img[i, j - 1] == strong) or (img[i, j + 1] == strong)
                             or (img[i - 1, j - 1] == strong) or (img[i - 1, j] == strong) or (img[i - 1, j + 1] == strong)):
-                        print(img[i, j])
+
                         img[i, j] = strong
 
                     else:
@@ -170,8 +172,8 @@ def hysteresis(img, weak, strong=255):
 
 
 
-IMAGEPATH = "test.bmp"
-#IMAGEPATH = "gangnir.PNG"
+#IMAGEPATH = "test.bmp"
+IMAGEPATH = "gangnir.PNG"
 
 
 
