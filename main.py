@@ -135,14 +135,11 @@ def doubleThreshold(img, lower_threshold=0.05, higher_threshold=0.09):
     weak = np.int32(1)
     strong = np.int32(255)
 
-    zeros = np.zeros(img.shape, dtype = np.int32)
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
             if img[i, j] >= highThreshold:
                 output[i, j] = strong
-            elif img[i, j] < lowThreshold:
-                output[i, j] = 0
-            elif (img[i, j] <= highThreshold) and (img[i, j] >= lowThreshold):
+            elif (img[i, j] <= highThreshold) & (img[i, j] >= lowThreshold):
                 output[i, j] = weak
 
     return output, weak, strong
