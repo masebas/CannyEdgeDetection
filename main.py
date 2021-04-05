@@ -132,10 +132,9 @@ def doubleThreshold(img, lower_threshold=0.05, higher_threshold=0.09):
 
     print(highThreshold, lowThreshold)
 
-    weak = np.int32(32)
+    weak = np.int32(1)
     strong = np.int32(255)
 
-    # Ved ikke hvis man kan bruge det til noget
     zeros = np.zeros(img.shape, dtype = np.int32)
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
@@ -143,7 +142,7 @@ def doubleThreshold(img, lower_threshold=0.05, higher_threshold=0.09):
                 output[i, j] = strong
             elif img[i, j] < lowThreshold:
                 output[i, j] = 0
-            elif (img[i, j] <= highThreshold) & (img[i, j] >= lowThreshold):
+            elif (img[i, j] <= highThreshold) and (img[i, j] >= lowThreshold):
                 output[i, j] = weak
 
     return output, weak, strong
@@ -160,7 +159,6 @@ def hysteresis(img, weak, strong=255):
                             or (img[i - 1, j - 1] == strong) or (img[i - 1, j] == strong) or (img[i - 1, j + 1] == strong)):
 
                         img[i, j] = strong
-
                     else:
                         img[i, j] = 0
                 except IndexError as e:
@@ -170,41 +168,27 @@ def hysteresis(img, weak, strong=255):
 
 
 
+def canny_edge_detection(path, kernel_size, sigma):
+    input = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+    hori, vert = sobel_filter(
+        gaussian_filter(kernel_size, sigma, input)
+    )
+    mag, ang = directionalGradients(hori, vert)
+
+    thresh, weak, strong = doubleThreshold(
+        non_maximum_suppression(mag, ang)
+    )
+    return hysteresis(thresh, weak, strong)
 
 
-#IMAGEPATH = "test.bmp"
+
+
 IMAGEPATH = "gangnir.PNG"
-
-
 
 input = cv2.imread(IMAGEPATH, cv2.IMREAD_GRAYSCALE)
 cv2.imshow("Original", input)
 
-
-gauss_out = gaussian_filter(3, const.golden_ratio, input)
-#cv2.imshow("Gauss", gauss_out)
-
-
-sobel_horizontal, sobel_vertical = sobel_filter(gauss_out)
-
-#show_image("Sobel Vertical", sobel_vertical)
-#show_image("Sobel Horizontal", sobel_horizontal)
-
-
-mag, dir = directionalGradients(sobel_horizontal, sobel_vertical)
-#show_image("Magnitude", mag)
-#show_image_angle("Angle", dir)
-
-suppressed = non_maximum_suppression(mag, dir)
-show_image("NMS", suppressed)
-
-thresh, weak, strong = doubleThreshold(suppressed)
-
-show_image("Threshold", thresh)
-#write_image("Threshold", thresh)
-
-hyst = hysteresis(thresh, weak, strong)
-show_image("Hysteresis", hyst)
+show_image("Output", canny_edge_detection(IMAGEPATH, 3, const.golden_ratio))
 
 cv2.waitKey(0)
 
